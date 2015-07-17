@@ -1,0 +1,17 @@
+{
+  "name": "Snake",
+  "main": "index.js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/yfsun/Snake",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "pixi": "~3.0.7"
+  }
+}

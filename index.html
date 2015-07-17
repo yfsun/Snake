@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>The Best Snake Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="bower_components/pixi/bin/pixi.min.js"></script>
+    <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <style>
+      .chat-container {
+        padding: 10px;
+      }
+      .chat-display {
+        height: 400px;
+        width: 1005;
+        border-radius: 3px;
+        border: 1px solid grey;
+      }
+      .my-chat {
+        width: 100%;
+        padding: 5px;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+    <div class="span4">
+      <div class="chat-container">
+        <input> </input>
+        <div class="chat-display">
+        </div>
+
+        <textarea class="my-chat">
+        </textarea>
+
+
+      </div>
+
+    </div>
+    <div id="game-container" class="span8">
+      <!--Body content-->
+    </div>
+  </div>
+</div>
+
+
+  <script>
+
+      var socket = io('135.0.157.53:3000');
+    $(document).ready(function() {
+
+          // SOCKET IO STUFF
+
+
+
+      socket.on('new message', function (data) {
+          $(".chat-display").append(data + '</br>');
+      });
+
+      $(document).keypress(function(e){
+          if (e.which == 13){
+            var text = $(".my-chat").val();
+            socket.emit('new message',text )
+            $(".my-chat").val('');
+          }
+      });
+
+    });
+
+    // first tile picked up by the player
+    var firstTile=null;
+    // second tile picked up by the player
+    var secondTile=null;
+    // can the player pick up a tile?
+    var canPick=true;
+    // create an new instance of a pixi stage with a grey background
+    // create a renderer instance width=640 height=480
+    var renderer = PIXI.autoDetectRenderer(640,480);
+    // importing a texture atlas created with texturepacker
+   renderer.backgroundColor = 0x1099bb;
+    // create an empty container
+    var gameContainer = new PIXI.Container();
+    // add the container to the stage
+
+    // add the renderer view element to the DOM
+    var t = document.getElementById('game-container')
+    t.appendChild(renderer.view);
+    var graphics = new PIXI.Graphics();
+    graphics.beginFill(0xFF3300);
+
+
+
+
+    var x = 50;
+    var y = 50;
+    var eggs = [];
+    var point = new PIXI.Point(0,0);
+
+    var DIRECTION = {
+      UP : 1,
+      DOWN : 2,
+      LEFT: 3,
+      RIGHT: 4
+    };
+    var curDir = DIRECTION.RIGHT;
+    var head = {x: 100, y: 100}
+
+    var snake = new PIXI.Graphics();
+    var tail = new  PIXI.Graphics();
+    var head = new PIXI.Graphics();
+    tail.beginFill(0x40906a);
+    head.beginFill(0x40906a);
+    head.drawRect(0, 0, 15, 15);
+    tail.drawRect(0, 0, 15, 15);
+
+    head.position.x = 100;
+    head.position.y = 100;
+
+    var grow = false;
+    tail.prev = head;
+    tail.position.x = 80;
+    tail.position.y = 100;
+    var DEFAULT_LEN = 10;
+
+    var body = [];
+    body.push(head);
+    body.push(tail);
+    for (var i = 0 ; i <= DEFAULT_LEN; i++) {
+      push();
+    }
+
+
+    function grow (dir) {
+      dir = dir || DIRECTION.RIGHT;
+
+    }
+
+    function push () {
+      // Create a new head
+      var newHead =  new PIXI.Graphics();
+      newHead.beginFill(0x000000);
+      newHead.drawRect(0, 0, 15, 15);
+      newHead.position.x = head.position.x + 20
+      newHead.position.y = head.position.y;
+
+      switch (curDir) {
+        case DIRECTION.UP:
+            newHead.position.y = head.position.y - 20;
+            newHead.position.x = head.position.x ;
+          break;
+        case DIRECTION.DOWN:
+            newHead.position.y = head.position.y + 20;
+            newHead.position.x = head.position.x ;
+          break;
+        case DIRECTION.LEFT:
+          if (curDir != DIRECTION.RIGHT)
+            newHead.position.x = head.position.x - 20
+          break;
+        case DIRECTION.RIGHT:
+          if (curDir != DIRECTION.LEFT)
+          newHead.position.x = head.position.x + 20
+          break;
+          body.push(newHead);
+      }
+      snake.addChild(newHead);
+      head.prev = newHead;
+      head = newHead;
+    }
+
+    function pop () {
+      snake.removeChild(tail);
+      body.push(tail);
+      tail = tail.prev;
+    }
+
+    var dir = { x: 0, y: 0};
+
+    graphics.drawRect(x, y, 30, 30);
+    gameContainer.addChild(graphics);
+    snake.addChild(head);
+    snake.addChild(tail);
+    gameContainer.addChild(snake);
+    animate();
+    var start = null;
+    function animate(time) {
+      if (!start) start = time;
+      var delta = (time - start)/1000 ;
+      if (delta >= ( 1/60) ) {
+        start = time;
+        tick();
+
+
+
+      }
+      requestAnimationFrame(animate);
+      renderer.render(gameContainer);
+    }
+    var step = 0;
+    function tick() {
+      if ( step == 5400) {
+        step = 0;
+        //graphics.drawRect(x, y, 30, 30);
+      }
+      eggs.forEach(function (e) {
+        point.x = e.position.x;
+        point.y = e.position.y;
+           if (head.x < (e.position.x + 15) &&  (head.x + 15) > e.position.x &&
+              head.y < (e.position.y + 15) &&  (head.y + 15) > e.position.y  ){
+            var i = eggs.indexOf(e);
+            eggs.splice(i,1);
+            gameContainer.removeChild(e);
+            grow = true;
+         }
+      })
+      if (step % 4  == 0) {
+        push();
+        if (grow) {
+          grow = false;
+        } else {
+          pop();
+
+        }
+      }
+
+      if (step % 30== 0) {
+        var egg = new PIXI.Graphics();
+        egg.beginFill(0xFF3300);
+        egg.drawRect(0, 0 , 15, 15);
+        egg.position.y = Math.random()*480;
+        egg.position.x = Math.random()*640;
+        gameContainer.addChild(egg);
+        //console.log('add efg');
+        eggs.push(egg);
+      }
+      step ++;
+    }
+    addEventListener("keypress", keyEvent);
+
+    function keyEvent(event) {
+      var key = event.keyCode || event.which;
+      var keychar = String.fromCharCode(key);
+      switch(event.keyCode) {
+        case 119: // w
+            if (curDir != DIRECTION.DOWN) curDir = DIRECTION.UP;
+          break;
+        case 115: // s
+            if (curDir != DIRECTION.UP) curDir = DIRECTION.DOWN;
+          break;
+        case 100: //d
+          curDir = DIRECTION.RIGHT;
+          break;
+        case 97:
+          curDir = DIRECTION.LEFT;
+          break;
+      }
+    }
+
+
+  </script>
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

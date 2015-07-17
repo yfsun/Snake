@@ -1,0 +1,24 @@
+{
+  "name": "snake",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.13.1",
+    "socket.io": "^1.3.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://yfsun@github.com/yfsun/Snake.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yfsun/Snake/issues"
+  },
+  "homepage": "https://github.com/yfsun/Snake#readme"
+}
