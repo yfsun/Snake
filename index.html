@@ -6,6 +6,7 @@
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
     <script src="bower_components/pixi/bin/pixi.min.js"></script>
+    <script src="bower_components/lodash/lodash.js"></script>
     <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <style>
@@ -31,6 +32,8 @@
       <div class="row-fluid">
     <div class="span4">
       <div class="chat-container">
+        <button id="start">Start</button>
+
         <input> </input>
         <div class="chat-display">
         </div>
@@ -51,17 +54,40 @@
 
   <script>
 
-      var socket = io('135.0.157.53:3000');
+    var socket = io('135.0.157.53:3000');
+    var clientId = null;
+
     $(document).ready(function() {
 
-          // SOCKET IO STUFF
-
-
-
+      // SOCKET IO STUFF
       socket.on('new message', function (data) {
           $(".chat-display").append(data + '</br>');
       });
 
+      socket.on('update', function(snakes) {
+        snake.removeChildren();
+        console.log(snakes);
+
+        _.forEach(snakes, function(ss, id) {
+
+            _.forEach(ss.body, function (s) {
+              var part =  new PIXI.Graphics();
+              part.beginFill(0x000000);
+              part.drawRect(0, 0, 15, 15);
+              part.position.x = s.x
+              part.position.y = s.y
+              snake.addChild(part);
+            })
+        })
+      });
+
+      socket.on('clientId', function (id) {
+        clientId = id;
+      });
+
+      $("#start").on('click', function () {
+        socket.emit('start', socket.id);
+      });
       $(document).keypress(function(e){
           if (e.which == 13){
             var text = $(".my-chat").val();
@@ -69,6 +95,31 @@
             $(".my-chat").val('');
           }
       });
+
+
+      addEventListener("keypress", keyEvent);
+
+      function keyEvent(event) {
+        var key = event.keyCode || event.which;
+        var keychar = String.fromCharCode(key);
+        switch(event.keyCode) {
+          case 119: // w
+              socket.emit('up');
+            break;
+          case 115: // s
+              socket.emit('down');
+            break;
+          case 100: //d
+              socket.emit('right');
+            break;
+          case 97:
+              socket.emit('left');
+            break;
+        }
+      }
+
+
+
 
     });
 
@@ -92,6 +143,7 @@
     t.appendChild(renderer.view);
     var graphics = new PIXI.Graphics();
     graphics.beginFill(0xFF3300);
+
 
 
 
@@ -218,13 +270,7 @@
          }
       })
       if (step % 4  == 0) {
-        push();
-        if (grow) {
-          grow = false;
-        } else {
-          pop();
 
-        }
       }
 
       if (step % 30== 0) {
@@ -233,32 +279,13 @@
         egg.drawRect(0, 0 , 15, 15);
         egg.position.y = Math.random()*480;
         egg.position.x = Math.random()*640;
-        gameContainer.addChild(egg);
+        //gameContainer.addChild(egg);
         //console.log('add efg');
-        eggs.push(egg);
+        //eggs.push(egg);
       }
       step ++;
     }
-    addEventListener("keypress", keyEvent);
 
-    function keyEvent(event) {
-      var key = event.keyCode || event.which;
-      var keychar = String.fromCharCode(key);
-      switch(event.keyCode) {
-        case 119: // w
-            if (curDir != DIRECTION.DOWN) curDir = DIRECTION.UP;
-          break;
-        case 115: // s
-            if (curDir != DIRECTION.UP) curDir = DIRECTION.DOWN;
-          break;
-        case 100: //d
-          curDir = DIRECTION.RIGHT;
-          break;
-        case 97:
-          curDir = DIRECTION.LEFT;
-          break;
-      }
-    }
 
 
   </script>

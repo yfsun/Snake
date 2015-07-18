@@ -11,90 +11,89 @@ server.listen(port, function () {
 
 // Routing
 app.use(express.static(__dirname + '/public'));
+var snakes = {};
+var DIRECTION = {
+  LEFT: 0,
+  RIGHT: 1,
+  UP: 2,
+  DOWN: 3
+};
 
-// Chatroom
+setInterval(function(){
+  io.sockets.emit('update', snakes);
+
+}, 20)
 
 
-// when the client emits 'add user', this listens and executes
-io.on('add user', function (username) {
-  console.log('Adding user ' + username)
-  // we store the username in the socket session for this client
-  socket.username = username;
-  // add the client's username to the global list
-  usernames[username] = username;
-  ++numUsers;
-  addedUser = true;
-  socket.emit('login', {
-    numUsers: numUsers
+setInterval(function(){
+  for (var key in snakes) {
+    push(key);
+    snakes[key].body.shift();
+  }
+}, 30)
+
+function push (key) {
+  var head = snakes[key].body[snakes[key].body.length - 1];
+  var newHead = {};
+  console.log(snakes[key].direction);
+  switch (snakes[key].direction) {
+    case DIRECTION.UP:
+      newHead.x = head.x;
+      newHead.y = head.y - 16;
+    break;
+    case DIRECTION.DOWN:
+      newHead.x = head.x;
+      newHead.y = head.y + 16;
+    break;
+    case DIRECTION.LEFT:
+      newHead.x = head.x - 16;
+      newHead.y = head.y;
+    break;
+    case DIRECTION.RIGHT:
+      newHead.x = head.x + 16;
+      newHead.y = head.y;
+    break;
+  }
+  //console.log(newHead.x + '' + newHead.y);
+  snakes[key].body.push(newHead)
+
+
+}
+
+
+io.on('connection', function (client) {
+  console.log('client connected:' + client.id );
+
+
+  client.on('start', function (clientId) {
+    console.log ("start: " + clientId);
+      snakes[client.id] = {
+        direction : DIRECTION.RIGHT,
+        body: [{x: 100, y: 100}]
+      };
+
+      for ( var i = 0; i < 6; i++) {
+        push(client.id);
+      }
+
+  })
+
+  client.on('up', function () {
+    snakes[client.id].direction = DIRECTION.UP;
   });
-  // echo globally (all clients) that a person has connected
-  socket.broadcast.emit('user joined', {
-    username: socket.username,
-    numUsers: numUsers
-  });
-});
 
-// usernames which are currently connected to the chat
-var usernames = {};
-var numUsers = 0;
-
-io.on('connection', function (socket) {
-  var addedUser = false;
-
-  // when the client emits 'new message', this listens and executes
-  socket.on('new message', function (data) {
-    // we tell the client to execute 'new message'
-    socket.broadcast.emit('new message', {
-      username: socket.username,
-      message: data
-    });
+  client.on('down', function () {
+    snakes[client.id].direction = DIRECTION.DOWN;
   });
 
-  // when the client emits 'add user', this listens and executes
-  socket.on('add user', function (username) {
-    console.log('Adding user ' + username)
-    // we store the username in the socket session for this client
-    socket.username = username;
-    // add the client's username to the global list
-    usernames[username] = username;
-    ++numUsers;
-    addedUser = true;
-    socket.emit('login', {
-      numUsers: numUsers
-    });
-    // echo globally (all clients) that a person has connected
-    socket.broadcast.emit('user joined', {
-      username: socket.username,
-      numUsers: numUsers
-    });
+  client.on('left', function () {
+    snakes[client.id].direction = DIRECTION.LEFT;
   });
 
-  // when the client emits 'typing', we broadcast it to others
-  socket.on('typing', function () {
-    socket.broadcast.emit('typing', {
-      username: socket.username
-    });
+  client.on('right', function () {
+    snakes[client.id].direction = DIRECTION.RIGHT;
   });
 
-  // when the client emits 'stop typing', we broadcast it to others
-  socket.on('stop typing', function () {
-    socket.broadcast.emit('stop typing', {
-      username: socket.username
-    });
-  });
 
-  // when the user disconnects.. perform this
-  socket.on('disconnect', function () {
-    // remove the username from global usernames list
-    if (addedUser) {
-      delete usernames[socket.username];
-      --numUsers;
 
-      // echo globally that this client has left
-      socket.broadcast.emit('user left', {
-        username: socket.username,
-        numUsers: numUsers
-      });
-    }
-  });
-});
+})

@@ -1,8 +1,10 @@
 {
   "name": "Snake",
-  "main": "index.js",
   "version": "0.0.0",
   "homepage": "https://github.com/yfsun/Snake",
+  "authors": [
+    "Bill <bill.yifei.sun@gmail.com>"
+  ],
   "license": "MIT",
   "ignore": [
     "**/.*",
@@ -12,6 +14,7 @@
     "tests"
   ],
   "dependencies": {
+    "lodash": "~3.10.0",
     "pixi": "~3.0.7"
   }
 }
