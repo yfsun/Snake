@@ -1,10 +1,15 @@
 // Setup basic express server
 var express = require('express');
+var _ = require('lodash');
+
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 
+
+var WIDTH = 640;
+var HEIGHT = 480;
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
@@ -12,6 +17,8 @@ server.listen(port, function () {
 // Routing
 app.use(express.static(__dirname + '/public'));
 var snakes = {};
+
+var eggs = [];
 var DIRECTION = {
   LEFT: 0,
   RIGHT: 1,
@@ -20,10 +27,13 @@ var DIRECTION = {
 };
 
 setInterval(function(){
-  io.sockets.emit('update', snakes);
-
+  io.sockets.emit('update', _.flatten(_.union(_.pluck(_.values(snakes), 'body'), eggs)));
 }, 20)
 
+
+setInterval (function(){
+  spawnEgg();
+}, 3000)
 
 setInterval(function(){
   for (var key in snakes) {
@@ -32,10 +42,17 @@ setInterval(function(){
   }
 }, 30)
 
+function spawnEgg() {
+  var x = Math.random() * WIDTH;
+  var y = Math.random() * HEIGHT;
+  eggs.push({x: x, y: y});
+}
+
+
+
 function push (key) {
   var head = snakes[key].body[snakes[key].body.length - 1];
   var newHead = {};
-  console.log(snakes[key].direction);
   switch (snakes[key].direction) {
     case DIRECTION.UP:
       newHead.x = head.x;
@@ -56,8 +73,9 @@ function push (key) {
   }
   //console.log(newHead.x + '' + newHead.y);
   snakes[key].body.push(newHead)
-
-
+  if (newHead.x <= 0 || newHead.x >= 640 || newHead.y <= 0 || newHead.y >= 480) {
+    io.sockets.emit('over', key);
+  }
 }
 
 
@@ -79,19 +97,19 @@ io.on('connection', function (client) {
   })
 
   client.on('up', function () {
-    snakes[client.id].direction = DIRECTION.UP;
+    if (snakes[client.id]) snakes[client.id].direction = DIRECTION.UP;
   });
 
   client.on('down', function () {
-    snakes[client.id].direction = DIRECTION.DOWN;
+    if (snakes[client.id]) snakes[client.id].direction = DIRECTION.DOWN;
   });
 
   client.on('left', function () {
-    snakes[client.id].direction = DIRECTION.LEFT;
+    if (snakes[client.id]) snakes[client.id].direction = DIRECTION.LEFT;
   });
 
   client.on('right', function () {
-    snakes[client.id].direction = DIRECTION.RIGHT;
+    if (snakes[client.id]) snakes[client.id].direction = DIRECTION.RIGHT;
   });
 
 

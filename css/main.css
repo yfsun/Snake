@@ -1,0 +1,40 @@
+.chat-container {
+  padding: 10px;
+}
+.chat-display {
+  height: 400px;
+  width: 1005;
+  border-radius: 3px;
+  border: 1px solid grey;
+}
+.my-chat {
+  padding: 5px;
+}
+.header {
+  text-align: center;
+  height: 100px;
+}
+.main-container {
+  background-color: red;
+}
+
+.body  {
+  width: calc(100% - 450px);
+  background-color: blue;
+  display: inline-block;
+}
+
+.right-panel {
+  width: 400px;
+  background-color: black;
+  display: inline-block;
+}
+
+
+body {
+  background-color: rgb(0, 92, 140);
+}
+
+h1 {
+  color: rgb(211, 214, 215);
+}
