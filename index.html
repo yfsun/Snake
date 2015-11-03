@@ -9,7 +9,7 @@
 
     <script src="bower_components/pixi/bin/pixi.min.js"></script>
     <script src="bower_components/lodash/lodash.js"></script>
-    <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
+    <script src="node_modules/socket.io-client/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 
   </head>
@@ -19,131 +19,16 @@
     </div>
 
     <div class="main-container">
-    <div class="body">
-      <div id="game-container" class="span8">
+      <button id="start">Start</button>
+
+      <div id="game-container">
         <!--Body content-->
       </div>
     </div>
-    <div class="right-panel">
-      <button id="start">Start</button>
-
-      <input> </input>
-      <div class="chat-display">
-      </div>
-
-      <textarea class="my-chat">
-      </textarea>
-
-    </div>
-    </div>
 
 
-
-  <script>
-
-    var socket = io('135.0.157.53:3000');
-    var clientId = null;
-
-    $(document).ready(function() {
-
-      // SOCKET IO STUFF
-      socket.on('new message', function (data) {
-          $(".chat-display").append(data + '</br>');
-      });
-
-      socket.on('update', function(data) {
-        // Find things that need to be removed;
-        _.forEach(snake.children, function (r) {
-          if (!_.find(data, function(t) {
-            return t.x == r.position.x && t.y == r.position.y;
-          })) {
-            snake.removeChild(r);
-          }
-        });
-
-        _.forEach(data, function(t) {
-          if (!_.find(snake.children, function(r) {
-            return t.x == r.position.x && t.y == r.position.y;
-          })) {
-            var part = new PIXI.Graphics();
-            part.beginFill(0xffffff);
-            part.drawRect(0, 0, 15, 15);
-            part.position.x = t.x;
-            part.position.y = t.y;
-
-            snake.addChild(part);
-          }
-
-        })
-
-      });
-
-      socket.on('clientId', function (id) {
-        clientId = id;
-      });
-      socket.on('over', function (id) {
-      });
-
-      $("#start").on('click', function () {
-        socket.emit('start', socket.id);
-      });
-      $(document).keypress(function(e){
-          if (e.which == 13){
-            var text = $(".my-chat").val();
-            socket.emit('new message',text )
-            $(".my-chat").val('');
-          }
-      });
-
-
-      addEventListener("keypress", keyEvent);
-
-      function keyEvent(event) {
-        var key = event.keyCode || event.which;
-        var keychar = String.fromCharCode(key);
-        switch(event.keyCode) {
-          case 119: // w
-              socket.emit('up');
-            break;
-          case 115: // s
-              socket.emit('down');
-            break;
-          case 100: //d
-              socket.emit('right');
-            break;
-          case 97:
-              socket.emit('left');
-            break;
-        }
-      }
-    });
-
-
-    var renderer = PIXI.autoDetectRenderer(640,480);
-      renderer.backgroundColor = 0x1099bb;
-    // create an empty container
-    var gameContainer = new PIXI.Container();
-    // add the container to the stage
-
-    // add the renderer view element to the DOM
-    var t = document.getElementById('game-container')
-    t.appendChild(renderer.view);
-
-
-    var snake = new PIXI.Graphics();
-
-    gameContainer.addChild(snake);
-
-    animate();
-    function animate(time) {
-      requestAnimationFrame(animate);
-      renderer.render(gameContainer);
-    }
-
-
-
-
-  </script>
+    <script src="js/game.js"></script>
+    <script src="js/serverIntegration.js"></script>
     <script src="http://code.jquery.com/jquery.js"></script>
     <script src="js/bootstrap.min.js"></script>
   </body>
