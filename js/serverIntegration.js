@@ -34,7 +34,7 @@ function connect(ipAddr, port ) {
   });
 
   socket.on('over', function (id) {
-    alert('Game Over' + id);
+    //alert('Game Over' + id);
   });
 
   $("#start").on('click', function () {
@@ -67,4 +67,4 @@ function connect(ipAddr, port ) {
 
 
 
-connect('localhost', '3000');
+connect('135.0.17.137', '3000');

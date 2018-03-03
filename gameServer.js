@@ -37,7 +37,6 @@ function gameOver(clientId) {
   status = GAMESTATUS.PAUSED;
   console.log('Game Over');
   console.log(clientId);
-  io.sockets.emit('over', clientId);
 }
 
 function gameStart() {
@@ -47,7 +46,7 @@ function gameStart() {
 updateLoop = setInterval(function(){
   if (status == GAMESTATUS.PAUSED) return;
 
-  io.sockets.emit('update', _.flatten(_.union(_.pluck(_.values(snakes), 'body'), eggs)));
+  io.sockets.emit('update', _.flatten(_.union(_.map(_.values(snakes), 'body'), eggs)));
 }, 20)
 
 moveSnakeLoop = setInterval(function(){
